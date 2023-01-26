@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2014 Jan-Piet Mens <jp@mens.de>
+ * Copyright (c) 2013, 2023 Jan-Piet Mens <jp@mens.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -595,6 +595,7 @@ int mosquitto_auth_unpwd_check(void *userdata, const char *username, const char 
 		granted = MOSQ_ERR_UNKNOWN;
 	}
 	auth_cache(username, password, granted, userdata);
+	
 	return granted;
 }
 
@@ -734,17 +735,21 @@ int mosquitto_auth_acl_check(void *userdata, const char *clientid, const char *u
 	_log(LOG_DEBUG, "aclcheck(%s, %s, %d) AUTHORIZED=%d by %s",
 		username, topic, access, authorized, (backend_name) ? backend_name : "none");
 
-	granted = (authorized) ?  MOSQ_ERR_SUCCESS : MOSQ_DENY_ACL;
+	//Edited by Arshid
+	//granted = (authorized) ?  MOSQ_ERR_SUCCESS : MOSQ_DENY_ACL;
+	granted = (authorized) ?  MOSQ_ERR_SUCCESS : MOSQ_ERR_ACL_DENIED;
 
    outout:	/* goto fail goto fail */
 
-	if (granted == MOSQ_DENY_ACL && has_error) {
+	if (granted == MOSQ_ERR_ACL_DENIED && has_error) {
 		_log(LOG_DEBUG, "aclcheck(%s, %s, %d) AUTHORIZED=N HAS_ERROR=Y => ERR_UNKNOWN",
 			username, topic, access);
 		granted = MOSQ_ERR_UNKNOWN;
 	}
 
 	acl_cache(clientid, username, topic, access, granted, userdata);
+	_log(LOG_DEBUG, "authorized:: %s", authorized? "true":"false");
+	_log(LOG_DEBUG, "granted:: %d", granted);
 	return (granted);
 
 }
